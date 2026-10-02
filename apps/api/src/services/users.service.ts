@@ -43,7 +43,7 @@ export async function getUser(username: string, requesterId?: string) {
 			(SELECT count(*) FROM follows WHERE follower_id = ${user.id}) as followingCount,
 			(SELECT count(*) FROM posts WHERE author_id = ${user.id}) as postCount,
 			CASE WHEN ${isDifferentRequester ? 1 : 0} = 1 THEN
-				EXISTS(SELECT 1 FROM follows WHERE follower_id = ${requesterId} AND following_id = ${user.id})
+				EXISTS(SELECT 1 FROM follows WHERE follower_id = ${requesterId || ""} AND following_id = ${user.id})
 			ELSE 0 END as isFollowing
 	`);
 

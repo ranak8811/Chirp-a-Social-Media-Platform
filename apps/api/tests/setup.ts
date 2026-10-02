@@ -13,6 +13,9 @@ vi.mock("../src/db", async () => {
 
 	const db = drizzle(client, { schema });
 
+	// Enforce foreign key constraints
+	await client.execute("PRAGMA foreign_keys = ON;");
+
 	// Create tables
 	await client.execute(`
 		CREATE TABLE IF NOT EXISTS users (
