@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { defineConfig } from "vitest/config";
@@ -16,10 +17,9 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			"@stylexjs/stylex": new URL("./tests/mocks/stylex.ts", import.meta.url).pathname,
-			"@tanstack/react-start/server": new URL("./tests/mocks/vinxi-http.ts", import.meta.url)
-				.pathname,
-			"@tanstack/react-start": new URL("./tests/mocks/tanstack-start.ts", import.meta.url).pathname,
+			"@stylexjs/stylex": fileURLToPath(new URL("./tests/mocks/stylex.ts", import.meta.url)),
+			"@tanstack/react-start/server": fileURLToPath(new URL("./tests/mocks/vinxi-http.ts", import.meta.url)),
+			"@tanstack/react-start": fileURLToPath(new URL("./tests/mocks/tanstack-start.ts", import.meta.url)),
 		},
 	},
 });

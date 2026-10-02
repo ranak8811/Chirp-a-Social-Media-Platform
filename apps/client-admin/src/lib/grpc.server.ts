@@ -37,7 +37,7 @@ export function createAdminGrpcSessionToken(session: AdminSessionData): string {
 			role: session.role,
 		},
 		JWT_SECRET,
-		{ expiresIn: 300 }, // 5 minutes
+		{ expiresIn: 300, issuer: "chirp-api", subject: session.userId },
 	);
 }
 
@@ -50,7 +50,7 @@ export async function getAdminGrpcSessionToken(): Promise<string | undefined> {
 	if (!session) {
 		return undefined;
 	}
-	return createAdminGrpcSessionToken(session);
+	return session.sessionToken || createAdminGrpcSessionToken(session);
 }
 
 /**

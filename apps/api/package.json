@@ -9,6 +9,7 @@
 		"start": "tsx src/index.ts",
 		"typecheck": "tsc --noEmit",
 		"test": "vitest run",
+		"test:unit": "vitest run",
 		"test:watch": "vitest",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",

@@ -2,6 +2,7 @@ import type { GrpcSessionPayload } from "@chirp/shared-types";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.GRPC_JWT_SECRET || "chirp-grpc-jwt-secret-key-at-least-32-chars";
+const JWT_ISSUER = "chirp-api";
 
 export interface AuthContext {
 	userId: string;
@@ -14,7 +15,17 @@ export interface AuthContext {
  */
 export function validateSessionToken(token: string): AuthContext {
 	try {
-		const decoded = jwt.verify(token, JWT_SECRET) as GrpcSessionPayload;
+		const decoded = jwt.verify(token, JWT_SECRET) as GrpcSessionPayload & { iss?: string };
+
+		// Verify that token has required claims and correct issuer if provided
+		if (decoded.iss && decoded.iss !== JWT_ISSUER) {
+			throw new Error("Invalid session token issuer");
+		}
+
+		if (!decoded.userId || !decoded.username || !decoded.role) {
+			throw new Error("Invalid session token claims");
+		}
+
 		return {
 			userId: decoded.userId,
 			username: decoded.username,
@@ -26,7 +37,7 @@ export function validateSessionToken(token: string): AuthContext {
 }
 
 /**
- * Creates a session token from auth context
+ * Creates an authoritative session token from auth context
  */
 export function createSessionToken(
 	context: AuthContext,
@@ -39,7 +50,7 @@ export function createSessionToken(
 			role: context.role,
 		},
 		JWT_SECRET,
-		{ expiresIn: expiresInSeconds },
+		{ expiresIn: expiresInSeconds, issuer: JWT_ISSUER, subject: context.userId },
 	);
 }
 

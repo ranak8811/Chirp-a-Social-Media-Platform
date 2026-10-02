@@ -39,7 +39,7 @@ export function createGrpcSessionToken(
 			role,
 		},
 		JWT_SECRET,
-		{ expiresIn: 300 }, // 5 minutes
+		{ expiresIn: 300, issuer: "chirp-api", subject: session.userId },
 	);
 }
 
@@ -52,7 +52,7 @@ export async function getGrpcSessionToken(): Promise<string | undefined> {
 	if (!session) {
 		return undefined;
 	}
-	return createGrpcSessionToken(session);
+	return session.sessionToken || createGrpcSessionToken(session);
 }
 
 /**
