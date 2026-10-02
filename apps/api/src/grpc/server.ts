@@ -13,6 +13,7 @@ import {
 } from "@chirp/proto";
 import { Server, ServerCredentials } from "@grpc/grpc-js";
 import { adaptService } from "@protobuf-ts/grpc-backend";
+import { wrapServiceWithObservability } from "../observability/interceptor";
 import { adminHandler } from "./handlers/admin.handler";
 import { authHandler } from "./handlers/auth.handler";
 import { bookmarksHandler } from "./handlers/bookmarks.handler";
@@ -28,18 +29,18 @@ import { usersHandler } from "./handlers/users.handler";
 export function startGrpcServer(port: number): Promise<Server> {
 	const server = new Server();
 
-	// Register all service handlers
-	server.addService(...adaptService(AuthService, authHandler));
-	server.addService(...adaptService(PostsService, postsHandler));
-	server.addService(...adaptService(CommentsService, commentsHandler));
-	server.addService(...adaptService(LikesService, likesHandler));
-	server.addService(...adaptService(FollowsService, followsHandler));
-	server.addService(...adaptService(FeedService, feedHandler));
-	server.addService(...adaptService(SearchService, searchHandler));
-	server.addService(...adaptService(UsersService, usersHandler));
-	server.addService(...adaptService(AdminService, adminHandler));
-	server.addService(...adaptService(NotificationsService, notificationsHandler));
-	server.addService(...adaptService(BookmarksService, bookmarksHandler));
+	// Register all service handlers with request tracing, structured logging, and unified error mapping
+	server.addService(...adaptService(AuthService, wrapServiceWithObservability("AuthService", authHandler)));
+	server.addService(...adaptService(PostsService, wrapServiceWithObservability("PostsService", postsHandler)));
+	server.addService(...adaptService(CommentsService, wrapServiceWithObservability("CommentsService", commentsHandler)));
+	server.addService(...adaptService(LikesService, wrapServiceWithObservability("LikesService", likesHandler)));
+	server.addService(...adaptService(FollowsService, wrapServiceWithObservability("FollowsService", followsHandler)));
+	server.addService(...adaptService(FeedService, wrapServiceWithObservability("FeedService", feedHandler)));
+	server.addService(...adaptService(SearchService, wrapServiceWithObservability("SearchService", searchHandler)));
+	server.addService(...adaptService(UsersService, wrapServiceWithObservability("UsersService", usersHandler)));
+	server.addService(...adaptService(AdminService, wrapServiceWithObservability("AdminService", adminHandler)));
+	server.addService(...adaptService(NotificationsService, wrapServiceWithObservability("NotificationsService", notificationsHandler)));
+	server.addService(...adaptService(BookmarksService, wrapServiceWithObservability("BookmarksService", bookmarksHandler)));
 
 	return new Promise((resolve, reject) => {
 		server.bindAsync(`0.0.0.0:${port}`, ServerCredentials.createInsecure(), (error, boundPort) => {
