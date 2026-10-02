@@ -1,8 +1,11 @@
 {
 	"$schema": "https://turbo.build/schema.json",
 	"tasks": {
+		"proto:generate": {
+			"outputs": ["generated/**"]
+		},
 		"build": {
-			"dependsOn": ["^build"],
+			"dependsOn": ["^proto:generate", "^build"],
 			"outputs": ["dist/**", ".output/**", ".vinxi/**", ".tanstack/**", "generated/**"]
 		},
 		"dev": {
@@ -10,30 +13,33 @@
 			"persistent": true
 		},
 		"lint": {
-			"dependsOn": ["^build"]
+			"dependsOn": ["^proto:generate", "^build"]
 		},
 		"typecheck": {
-			"dependsOn": ["^build"]
+			"dependsOn": ["^proto:generate", "^build"]
 		},
 		"test": {
-			"dependsOn": ["^build"],
+			"dependsOn": ["^proto:generate", "^build"],
 			"outputs": ["coverage/**"]
 		},
 		"test:unit": {
-			"dependsOn": ["^build"],
+			"dependsOn": ["^proto:generate", "^build"],
 			"outputs": ["coverage/**"]
 		},
 		"test:integration": {
-			"dependsOn": ["^build"]
+			"dependsOn": ["^proto:generate", "^build"]
 		},
 		"test:e2e": {
 			"dependsOn": ["build"]
 		},
-		"proto:generate": {
-			"outputs": ["generated/**"]
+		"db:generate": {
+			"cache": false
 		},
-		"db:generate": {},
-		"db:migrate": {},
-		"db:seed": {}
+		"db:migrate": {
+			"cache": false
+		},
+		"db:seed": {
+			"cache": false
+		}
 	}
 }

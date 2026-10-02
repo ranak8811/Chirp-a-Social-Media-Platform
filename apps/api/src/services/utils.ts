@@ -1,4 +1,5 @@
 import {
+	type ScryptOptions,
 	createHash,
 	randomBytes,
 	scrypt as scryptCb,
@@ -13,7 +14,12 @@ export function generateId(): string {
 	return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 }
 
-const scryptAsync = promisify(scryptCb);
+const scryptAsync = promisify(scryptCb) as (
+	password: string | Buffer,
+	salt: string | Buffer,
+	keylen: number,
+	options: ScryptOptions,
+) => Promise<Buffer>;
 
 const SCRYPT_PREFIX = "scrypt";
 const SCRYPT_COST = 16384;

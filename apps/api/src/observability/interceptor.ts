@@ -1,5 +1,5 @@
 import type { ServerCallContext } from "@protobuf-ts/runtime-rpc";
-import { AppError, mapToAppError } from "../errors";
+import { mapToAppError } from "../errors";
 import { logger } from "./logger";
 import { type TraceContext, createTraceId, runWithTrace } from "./trace";
 
@@ -23,18 +23,19 @@ export function wrapServiceWithObservability<T extends Record<string, any>>(
 			request: unknown,
 			context?: ServerCallContext,
 		) {
+			const ctx = context as any;
 			// Extract trace ID from incoming request headers or generate a new one
 			const incomingTraceId =
-				(context?.requestHeaders?.["x-trace-id"] as string) ||
-				(context?.requestHeaders?.["trace-id"] as string);
+				(ctx?.requestHeaders?.["x-trace-id"] as string) ||
+				(ctx?.requestHeaders?.["trace-id"] as string);
 			const traceId = incomingTraceId || createTraceId();
 
 			// Echo trace ID back in response headers and trailers for client visibility
-			if (context?.responseHeaders) {
-				context.responseHeaders["x-trace-id"] = traceId;
+			if (ctx?.responseHeaders) {
+				ctx.responseHeaders["x-trace-id"] = traceId;
 			}
-			if (context?.trailers) {
-				context.trailers["x-trace-id"] = traceId;
+			if (ctx?.trailers) {
+				ctx.trailers["x-trace-id"] = traceId;
 			}
 
 			const traceContext: TraceContext = {

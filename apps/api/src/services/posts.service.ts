@@ -1,10 +1,10 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db, schema } from "../db";
 import { processMentions } from "./mentions.service";
 import { enrichPostsWithCounts, getPostCounts } from "./post-counts.util";
 import { generateId } from "./utils";
 
-const { posts, users, likes, comments } = schema;
+const { posts, users } = schema;
 
 export interface CreatePostInput {
 	content: string;

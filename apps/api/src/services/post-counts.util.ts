@@ -57,11 +57,17 @@ export async function enrichPostsWithCounts<T extends { id: string }>(
 			.select({ postId: likes.postId })
 			.from(likes)
 			.where(and(inArray(likes.postId, postIds), eq(likes.userId, userId)));
-		userLikedSet = new Set(userLikes.map((l) => l.postId));
+		userLikedSet = new Set(
+			userLikes
+				.map((l) => l.postId)
+				.filter((id): id is string => typeof id === "string"),
+		);
 	}
 
 	const likesMap = new Map<string, number>(
-		likesCounts.map((r) => [r.postId, Number(r.count)]),
+		likesCounts
+			.filter((r): r is { postId: string; count: number } => typeof r.postId === "string")
+			.map((r) => [r.postId, Number(r.count)]),
 	);
 	const commentsMap = new Map<string, number>(
 		commentsCounts.map((r) => [r.postId, Number(r.count)]),

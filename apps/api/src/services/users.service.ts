@@ -1,7 +1,7 @@
-import { and, eq, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db, schema } from "../db";
 
-const { users, follows, posts } = schema;
+const { users } = schema;
 
 export interface UpdateProfileInput {
 	userId: string;

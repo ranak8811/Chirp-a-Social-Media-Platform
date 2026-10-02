@@ -1,0 +1,3 @@
+#!/bin/sh
+# Pre-commit hook: Verify formatting & linting on staged files
+pnpm exec biome check --staged --no-errors-on-unmatched
