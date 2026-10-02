@@ -3,6 +3,8 @@
 	"include": ["**/*.ts", "**/*.tsx"],
 	"exclude": ["node_modules"],
 	"compilerOptions": {
+		"ignoreDeprecations": "5.0",
+		"moduleResolution": "bundler",
 		"types": ["vite/client"],
 		"verbatimModuleSyntax": false,
 		"noUncheckedSideEffectImports": true,
