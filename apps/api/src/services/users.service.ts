@@ -30,44 +30,29 @@ export async function getUser(username: string, requesterId?: string) {
 		throw new Error("User not found");
 	}
 
-	// Get follower count
-	const followerResult = await db
-		.select({ count: sql<number>`count(*)` })
-		.from(follows)
-		.where(eq(follows.followingId, user.id))
-		.get();
-
-	// Get following count
-	const followingResult = await db
-		.select({ count: sql<number>`count(*)` })
-		.from(follows)
-		.where(eq(follows.followerId, user.id))
-		.get();
-
-	// Get post count
-	const postResult = await db
-		.select({ count: sql<number>`count(*)` })
-		.from(posts)
-		.where(eq(posts.authorId, user.id))
-		.get();
-
-	// Check if requester is following this user
-	let isFollowing = false;
-	if (requesterId && requesterId !== user.id) {
-		const follow = await db
-			.select()
-			.from(follows)
-			.where(and(eq(follows.followerId, requesterId), eq(follows.followingId, user.id)))
-			.get();
-		isFollowing = !!follow;
-	}
+	// Consolidate follower count, following count, post count, and follow status into a single query
+	const isDifferentRequester = requesterId && requesterId !== user.id;
+	const statsResult = await db.get<{
+		followerCount: number;
+		followingCount: number;
+		postCount: number;
+		isFollowing: number;
+	}>(sql`
+		SELECT 
+			(SELECT count(*) FROM follows WHERE following_id = ${user.id}) as followerCount,
+			(SELECT count(*) FROM follows WHERE follower_id = ${user.id}) as followingCount,
+			(SELECT count(*) FROM posts WHERE author_id = ${user.id}) as postCount,
+			CASE WHEN ${isDifferentRequester ? 1 : 0} = 1 THEN
+				EXISTS(SELECT 1 FROM follows WHERE follower_id = ${requesterId} AND following_id = ${user.id})
+			ELSE 0 END as isFollowing
+	`);
 
 	return {
 		...user,
-		followerCount: followerResult?.count || 0,
-		followingCount: followingResult?.count || 0,
-		postCount: postResult?.count || 0,
-		isFollowing,
+		followerCount: Number(statsResult?.followerCount || 0),
+		followingCount: Number(statsResult?.followingCount || 0),
+		postCount: Number(statsResult?.postCount || 0),
+		isFollowing: Boolean(statsResult?.isFollowing),
 	};
 }
 

@@ -1,6 +1,7 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import { db, schema } from "../db";
 import { processMentions } from "./mentions.service";
+import { enrichPostsWithCounts, getPostCounts } from "./post-counts.util";
 import { generateId } from "./utils";
 
 const { posts, users, likes, comments } = schema;
@@ -20,36 +21,6 @@ export interface GetPostsOptions {
 	limit?: number;
 	offset?: number;
 	userId?: string; // For checking if liked
-}
-
-async function getPostCounts(postId: string, userId?: string) {
-	const likesResult = await db
-		.select({ count: sql<number>`count(*)` })
-		.from(likes)
-		.where(eq(likes.postId, postId))
-		.get();
-
-	const commentsResult = await db
-		.select({ count: sql<number>`count(*)` })
-		.from(comments)
-		.where(eq(comments.postId, postId))
-		.get();
-
-	let isLiked = false;
-	if (userId) {
-		const likeStatus = await db
-			.select()
-			.from(likes)
-			.where(and(eq(likes.postId, postId), eq(likes.userId, userId)))
-			.get();
-		isLiked = !!likeStatus;
-	}
-
-	return {
-		likeCount: likesResult?.count || 0,
-		commentCount: commentsResult?.count || 0,
-		isLiked,
-	};
 }
 
 export async function createPost(input: CreatePostInput) {
@@ -181,14 +152,7 @@ export async function getPosts(options: GetPostsOptions = {}) {
 		.limit(limit)
 		.offset(offset);
 
-	const postsWithCounts = await Promise.all(
-		result.map(async (post) => {
-			const counts = await getPostCounts(post.id, options.userId);
-			return { ...post, ...counts };
-		}),
-	);
-
-	return postsWithCounts;
+	return enrichPostsWithCounts(result, options.userId);
 }
 
 export async function getUserPosts(username: string, userId?: string) {
@@ -216,12 +180,5 @@ export async function getUserPosts(username: string, userId?: string) {
 		.where(eq(posts.authorId, user.id))
 		.orderBy(desc(posts.createdAt));
 
-	const postsWithCounts = await Promise.all(
-		result.map(async (post) => {
-			const counts = await getPostCounts(post.id, userId);
-			return { ...post, ...counts };
-		}),
-	);
-
-	return postsWithCounts;
+	return enrichPostsWithCounts(result, userId);
 }
